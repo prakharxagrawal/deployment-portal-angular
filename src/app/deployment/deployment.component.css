@@ -1,0 +1,33 @@
+
+mat-card {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.08);
+}
+
+mat-card-title {
+  font-size: 1.3rem;
+  color: #1976d2;
+  margin-bottom: 10px;
+}
+
+mat-card-content {
+  padding: 18px 0 0 0;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 24px;
+}
+
+mat-form-field {
+  width: 320px;
+  min-width: 220px;
+  flex: 1 1 320px;
+}
+
+button {
+  min-width: 120px;
+  margin-right: 12px;
+}

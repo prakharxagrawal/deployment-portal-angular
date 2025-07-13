@@ -1,0 +1,22 @@
+<div class="sso-login-wrapper">
+  <mat-card class="sso-login-card">
+    <div class="sso-logo">
+      <!-- Place for company logo, can be replaced with <img> if available -->
+      <span class="logo-circle">C</span>
+    </div>
+    <mat-card-title class="sso-title">Corporate SSO Login</mat-card-title>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="fill">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username">
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password">
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Login</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

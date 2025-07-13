@@ -2,10 +2,9 @@ import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
 import { provideServerRendering } from '@angular/platform-server';
 import { appConfig } from './app.config';
 
-const serverConfig: ApplicationConfig = {
+export const config: ApplicationConfig = {
   providers: [
     provideServerRendering(),
+    ...appConfig.providers
   ]
 };
-
-export const config = mergeApplicationConfig(appConfig, serverConfig);

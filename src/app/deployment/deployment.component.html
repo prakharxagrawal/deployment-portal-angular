@@ -1,0 +1,40 @@
+<mat-card *ngIf="!deployment">
+  <mat-card-title>Request Details</mat-card-title>
+  <mat-card-content>Please select a request from the left panel.</mat-card-content>
+</mat-card>
+<mat-card *ngIf="deployment">
+  <mat-card-title>Request Details: {{ deployment.serialNumber }}</mat-card-title>
+  <mat-card-content>
+    <form [formGroup]="deploymentForm">
+      <mat-form-field>
+        <mat-label>CSI ID</mat-label>
+        <mat-select formControlName="csiId">
+          <mat-option *ngFor="let id of csiIds" [value]="id">{{ id }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Services (comma-separated)" formControlName="services">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Request IDs (comma-separated)" formControlName="requestIds">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Environments</mat-label>
+        <mat-select formControlName="environments" multiple>
+          <mat-option *ngFor="let env of environments" [value]="env">{{ env }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Release Branch" formControlName="releaseBranch">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Release</mat-label>
+        <mat-select formControlName="release">
+          <mat-option *ngFor="let release of releases" [value]="release">{{ release }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="updateDeployment()" [disabled]="deploymentForm.invalid">Update</button>
+      <button mat-raised-button color="warn" (click)="deleteDeployment()" *ngIf="user?.role === 'admin'">Delete</button>
+    </form>
+  </mat-card-content>
+</mat-card>
