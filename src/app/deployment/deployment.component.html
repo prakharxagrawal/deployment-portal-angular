@@ -1,11 +1,30 @@
-<mat-card *ngIf="!deployment">
+<mat-card *ngIf="!deployment" class="main-detail-card">
   <mat-card-title>Request Details</mat-card-title>
   <mat-card-content>Please select a request from the left panel.</mat-card-content>
 </mat-card>
-<mat-card *ngIf="deployment">
-  <mat-card-title>Request Details: {{ deployment.serialNumber }}</mat-card-title>
+<mat-card *ngIf="deployment" class="main-detail-card">
+  <div class="main-detail-header">
+    <div class="main-detail-title">
+      <span class="main-detail-heading">Request Details</span>
+      <span class="main-detail-number">#{{ deployment.serialNumber }}</span>
+    </div>
+    <div class="main-detail-status" [ngStyle]="{'color': getStatusColor(deployment.status)}">{{ deployment.status }}</div>
+  </div>
   <mat-card-content>
-    <form [formGroup]="deploymentForm">
+    <div class="main-detail-meta">
+      <div class="main-detail-row"><span class="main-detail-label">Date Requested:</span> <span>{{ deployment.dateRequested | date:'medium' }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">CSI ID:</span> <span>{{ deployment.csiId }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Service:</span> <span>{{ deployment.service || '' }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Request ID:</span> <span>{{ deployment.requestId || '' }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Environments:</span> <span>{{ deployment.environments && deployment.environments.length ? deployment.environments.join(', ') : deployment.environments }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Team:</span> <span>{{ deployment.team }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Release:</span> <span>{{ deployment.release }}</span></div>
+      <div class="main-detail-row"><span class="main-detail-label">Requested By:</span> <span>{{ deployment.createdBy || user?.username }}</span></div>
+    </div>
+    <div *ngIf="!editMode" class="main-detail-actions">
+      <button mat-raised-button color="primary" (click)="enableEdit()" *ngIf="canEdit">Edit</button>
+    </div>
+    <form *ngIf="editMode" [formGroup]="deploymentForm" class="main-detail-form">
       <mat-form-field>
         <mat-label>CSI ID</mat-label>
         <mat-select formControlName="csiId">
@@ -13,10 +32,12 @@
         </mat-select>
       </mat-form-field>
       <mat-form-field>
-        <input matInput placeholder="Services (comma-separated)" formControlName="services">
+        <mat-label>Service</mat-label>
+        <input matInput placeholder="Enter single service name" formControlName="service">
       </mat-form-field>
       <mat-form-field>
-        <input matInput placeholder="Request IDs (comma-separated)" formControlName="requestIds">
+        <mat-label>Request ID</mat-label>
+        <input matInput placeholder="Enter single request ID" formControlName="requestId">
       </mat-form-field>
       <mat-form-field>
         <mat-label>Environments</mat-label>
@@ -25,7 +46,10 @@
         </mat-select>
       </mat-form-field>
       <mat-form-field>
-        <input matInput placeholder="Release Branch" formControlName="releaseBranch">
+        <mat-label>Team Name</mat-label>
+        <mat-select formControlName="team">
+          <mat-option *ngFor="let team of teams" [value]="team">{{ team }}</mat-option>
+        </mat-select>
       </mat-form-field>
       <mat-form-field>
         <mat-label>Release</mat-label>
@@ -33,8 +57,11 @@
           <mat-option *ngFor="let release of releases" [value]="release">{{ release }}</mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-raised-button color="primary" (click)="updateDeployment()" [disabled]="deploymentForm.invalid">Update</button>
-      <button mat-raised-button color="warn" (click)="deleteDeployment()" *ngIf="user?.role === 'admin'">Delete</button>
+      <div class="main-detail-form-actions">
+        <button mat-raised-button color="primary" (click)="updateDeployment()" [disabled]="deploymentForm.invalid || !canEdit">Update</button>
+        <button mat-stroked-button color="accent" (click)="cancelEdit()" type="button">Cancel</button>
+        <button mat-raised-button color="warn" (click)="deleteDeployment()" *ngIf="user?.role === 'admin'">Delete</button>
+      </div>
     </form>
   </mat-card-content>
 </mat-card>

@@ -45,13 +45,13 @@ export class ReportComponent {
   generateReport() {
     if (isPlatformBrowser(this.platformId)) {
       const { release, environment } = this.reportForm.value;
-      this.deploymentService.generateReport(release, environment).subscribe(
-        response => {
+      this.deploymentService.generateReport(release, environment).subscribe({
+        next: response => {
           const blob = new Blob([response], { type: 'text/csv' });
           saveAs(blob, `deployment_report_${release || 'all'}_${environment || 'all'}.csv`);
         },
-        error => alert('Error generating report')
-      );
+        error: () => alert('Error generating report')
+      });
     }
   }
 }

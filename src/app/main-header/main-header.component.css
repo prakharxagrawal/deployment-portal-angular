@@ -1,0 +1,36 @@
+.main-header.toolbar-header {
+  width: 100%;
+  background: #1976d2;
+  color: #fff;
+  padding: 12px 0 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 44px;
+}
+.header-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-left: 40px;
+  letter-spacing: 0.3px;
+}
+.header-user {
+  font-size: 0.95rem;
+  margin-right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logout-btn {
+  margin-left: 16px;
+  font-size: 0.9rem;
+  background: #ff5722 !important;
+  color: #fff !important;
+  border: 2px solid #ff5722 !important;
+  font-weight: 600;
+  padding: 6px 16px;
+}

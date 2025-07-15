@@ -1,69 +1,55 @@
 <div class="main-bg">
-  <header class="main-header">
-    <div class="header-title">{{ title }}</div>
-    <div class="header-user" *ngIf="user">Logged in as: <b>{{ user.username }}</b> ({{ user.role }})</div>
-  </header>
-  <div class="container">
+  <app-main-header [user]="user" (logout)="logout()"></app-main-header>
+  <div class="container edge-to-edge">
     <div *ngIf="showLogin" class="login-wrapper">
       <app-login (login)="user = $event; showLogin = false"></app-login>
     </div>
     <div *ngIf="!showLogin" class="main-content new-layout">
-      <div class="side-panel">
-        <h2>Requests</h2>
-        <div class="request-list" cdkScrollable>
-          <div class="request-item" *ngFor="let deployment of deployments" (click)="selectDeployment(deployment)" [class.selected]="deployment === selectedDeployment">
-            {{ deployment.serialNumber }}
+      <app-main-toolbar
+        [statusFilter]="statusFilter"
+        [envFilter]="envFilter"
+        [releaseFilter]="releaseFilter"
+        [configFilter]="configFilter"
+        [releases]="releases"
+        [searchQuery]="searchQuery"
+        [canEdit]="canEdit"
+        [canCreate]="canCreate"
+        (statusFilterChange)="onStatusFilterChange($event)"
+        (envFilterChange)="onEnvFilterChange($event)"
+        (releaseFilterChange)="onReleaseFilterChange($event)"
+        (configFilterChange)="onConfigFilterChange($event)"
+        (searchChange)="onSearchChange($event)"
+        (editRequest)="onEditRequest()"
+        (newRequest)="onNewRequest()"
+      ></app-main-toolbar>
+      <div class="content-row flex-content-row">
+        <app-request-list
+          [deployments]="filteredDeployments"
+          [selectedDeployment]="selectedDeployment"
+          (deploymentSelected)="selectDeployment($event)">
+        </app-request-list>
+        <div class="main-panel">
+          <div class="main-panel-content">
+            <app-request-details 
+              [deployment]="selectedDeployment" 
+              [user]="user"
+              (deploymentUpdate)="onDeploymentUpdate($event)">
+            </app-request-details>
           </div>
         </div>
-        <div class="side-actions">
-          <button mat-stroked-button color="warn" (click)="logout()">Logout</button>
-        </div>
       </div>
-      <div class="main-panel">
-        <div class="main-panel-header">
-          <button mat-raised-button color="primary" class="new-request-btn" (click)="openNewRequestForm()">New Request</button>
-          <div class="main-filters">
-            <mat-form-field appearance="fill">
-              <mat-label>Status</mat-label>
-              <mat-select>
-                <mat-option value="">All Statuses</mat-option>
-                <mat-option value="Open">Open</mat-option>
-                <mat-option value="In Progress">In Progress</mat-option>
-                <mat-option value="Pending">Pending</mat-option>
-                <mat-option value="Completed">Completed</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="fill">
-              <mat-label>Environment</mat-label>
-              <mat-select>
-                <mat-option value="">All Environments</mat-option>
-                <mat-option value="UAT1">UAT1</mat-option>
-                <mat-option value="UAT2">UAT2</mat-option>
-                <mat-option value="UAT3">UAT3</mat-option>
-                <mat-option value="DEV1">DEV1</mat-option>
-                <mat-option value="DEV2">DEV2</mat-option>
-                <mat-option value="DEV3">DEV3</mat-option>
-                <mat-option value="PERF">PERF</mat-option>
-                <mat-option value="PROD">PROD</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="fill">
-              <mat-label>Release</mat-label>
-              <mat-select>
-                <mat-option value="">All Releases</mat-option>
-                <mat-option *ngFor="let release of releases" [value]="release">{{ release }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-        <div class="main-panel-content">
-          <app-deployment [deployment]="selectedDeployment" [releases]="releases" [user]="user"></app-deployment>
-        </div>
-        <div class="main-panel-footer">
-          <app-report [releases]="releases"></app-report>
-        </div>
-      </div>
+      <app-bottom-toolbar
+        [releases]="releases"
+        [environments]="['UAT1','UAT2','UAT3','DEV1','DEV2','DEV3','PERF','PROD']"
+        [teams]="teams"
+        [selectedRelease]="exportReleaseFilter"
+        [selectedEnv]="exportEnvFilter"
+        [selectedTeam]="exportTeamFilter"
+        (selectedReleaseChange)="onExportReleaseFilterChange($event)"
+        (selectedEnvChange)="onExportEnvFilterChange($event)"
+        (selectedTeamChange)="onExportTeamFilterChange($event)"
+        (exportCSV)="onExportCSV($event)"
+      ></app-bottom-toolbar>
     </div>
-    <footer class="footer">Developed by Prakhar Agrawal (SOEID: PA54075)</footer>
   </div>
 </div>

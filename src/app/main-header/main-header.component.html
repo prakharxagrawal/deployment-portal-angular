@@ -1,0 +1,7 @@
+<header class="main-header toolbar-header">
+  <div class="header-title">Micro Service Request Page for CRS Olympus</div>
+  <div class="header-user" *ngIf="user">
+    <span class="user-info">Logged in as: <b>{{ user.username }}</b> ({{ user.role === 'developer' ? 'Developer' : 'Admin' }})</span>
+    <button mat-stroked-button color="warn" class="logout-btn" (click)="logout.emit()">Logout</button>
+  </div>
+</header>

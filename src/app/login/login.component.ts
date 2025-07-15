@@ -38,12 +38,21 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (isPlatformBrowser(this.platformId)) {
+    if (isPlatformBrowser(this.platformId) && this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
-      this.authService.login(username, password).subscribe(
-        response => this.login.emit(response),
-        error => alert('Invalid credentials')
-      );
+      this.authService.login(username, password).subscribe({
+        next: response => {
+          this.login.emit(response);
+        },
+        error: (error) => {
+          console.error('Login error:', error);
+          if (error.status === 401) {
+            alert('Invalid credentials');
+          } else {
+            alert('Login failed. Please try again.');
+          }
+        }
+      });
     }
   }
 }

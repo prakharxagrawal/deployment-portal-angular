@@ -1,0 +1,18 @@
+<div class="bottom-toolbar-ultra-thin">
+  <span class="left-text">Developed by Prakhar Agrawal (SOEID: PA54075)</span>
+  <div class="export-controls">
+    <select class="thin-dropdown" [(ngModel)]="selectedRelease" (change)="onReleaseChange($event)">
+      <option value="">Release</option>
+      <option *ngFor="let release of releases" [value]="release">{{ release }}</option>
+    </select>
+    <select class="thin-dropdown" [(ngModel)]="selectedEnv" (change)="onEnvChange($event)">
+      <option value="">Env</option>
+      <option *ngFor="let env of environments" [value]="env">{{ env }}</option>
+    </select>
+    <select class="thin-dropdown" [(ngModel)]="selectedTeam" (change)="onTeamChange($event)">
+      <option value="">Team</option>
+      <option *ngFor="let team of teams" [value]="team">{{ team }}</option>
+    </select>
+    <button class="export-btn" (click)="onExportCSV()">Export CSV</button>
+  </div>
+</div>

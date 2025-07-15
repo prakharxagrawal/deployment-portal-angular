@@ -1,8 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DeploymentService } from '../deployment.service';
-import { Inject, PLATFORM_ID } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -29,8 +28,17 @@ export class DeploymentComponent implements OnChanges {
   @Input() releases: string[] = [];
   @Input() user: any;
   deploymentForm: FormGroup;
+  editMode = false;
   csiIds = ['172033', '172223', '169608'];
   environments = ['UAT1', 'UAT2', 'UAT3', 'DEV1', 'DEV2', 'DEV3', 'PERF', 'PROD'];
+  teams = ['Phoenix', 'Avengers', 'Transformers', 'Hyper Care', 'CRUD', 'Crusaders'];
+
+  get canEdit(): boolean {
+    if (!this.user || !this.deployment) return false;
+    if (this.user.role === 'admin') return true;
+    const status = (this.deployment.status || '').toLowerCase();
+    return this.user.role === 'developer' && (status === 'open' || status === 'pending');
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -39,10 +47,10 @@ export class DeploymentComponent implements OnChanges {
   ) {
     this.deploymentForm = this.fb.group({
       csiId: ['', Validators.required],
-      services: ['', Validators.required],
-      requestIds: ['', Validators.required],
+      service: ['', Validators.required],
+      requestId: ['', Validators.required],
       environments: ['', Validators.required],
-      releaseBranch: ['', Validators.required],
+      team: ['', Validators.required],
       release: ['', Validators.required]
     });
   }
@@ -51,13 +59,35 @@ export class DeploymentComponent implements OnChanges {
     if (this.deployment) {
       this.deploymentForm.patchValue({
         csiId: this.deployment.csiId,
-        services: this.deployment.services.join(','),
-        requestIds: this.deployment.requestIds.join(','),
+        service: this.deployment.service,
+        requestId: this.deployment.requestId,
         environments: this.deployment.environments,
-        releaseBranch: this.deployment.releaseBranch,
+        team: this.deployment.team,
         release: this.deployment.release
       });
+      this.editMode = false;
+      this.deploymentForm.disable();
     }
+  }
+
+  enableEdit() {
+    if (this.canEdit) {
+      this.editMode = true;
+      this.deploymentForm.enable();
+    }
+  }
+
+  cancelEdit() {
+    this.editMode = false;
+    this.deploymentForm.patchValue({
+      csiId: this.deployment.csiId,
+      service: this.deployment.service,
+      requestId: this.deployment.requestId,
+      environments: this.deployment.environments,
+      team: this.deployment.team,
+      release: this.deployment.release
+    });
+    this.deploymentForm.disable();
   }
 
   onSubmit() {
@@ -65,14 +95,14 @@ export class DeploymentComponent implements OnChanges {
       const deployment = {
         ...this.deploymentForm.value,
         createdBy: this.user.username,
-        services: this.deploymentForm.value.services.split(',').map((s: string) => s.trim()),
-        requestIds: this.deploymentForm.value.requestIds.split(',').map((r: string) => r.trim()),
+        service: this.deploymentForm.value.service.trim(),
+        requestId: this.deploymentForm.value.requestId.trim(),
         environments: this.deploymentForm.value.environments
       };
-      this.deploymentService.createDeployment(deployment).subscribe(
-        response => alert('Deployment created'),
-        error => alert('Error creating deployment')
-      );
+      this.deploymentService.createDeployment(deployment).subscribe({
+        next: () => alert('Deployment created'),
+        error: () => alert('Error creating deployment')
+      });
     }
   }
 
@@ -80,23 +110,33 @@ export class DeploymentComponent implements OnChanges {
     if (isPlatformBrowser(this.platformId)) {
       const deployment = {
         ...this.deploymentForm.value,
-        services: this.deploymentForm.value.services.split(',').map((s: string) => s.trim()),
-        requestIds: this.deploymentForm.value.requestIds.split(',').map((r: string) => r.trim()),
+        service: this.deploymentForm.value.service.trim(),
+        requestId: this.deploymentForm.value.requestId.trim(),
         environments: this.deploymentForm.value.environments
       };
-      this.deploymentService.updateDeployment(this.deployment.id, deployment).subscribe(
-        response => alert('Deployment updated'),
-        error => alert('Error updating deployment')
-      );
+      this.deploymentService.updateDeployment(this.deployment.id, deployment).subscribe({
+        next: () => alert('Deployment updated'),
+        error: () => alert('Error updating deployment')
+      });
     }
   }
 
   deleteDeployment() {
     if (isPlatformBrowser(this.platformId)) {
-      this.deploymentService.deleteDeployment(this.deployment.id).subscribe(
-        () => alert('Deployment deleted'),
-        error => alert('Error deleting deployment')
-      );
+      this.deploymentService.deleteDeployment(this.deployment.id).subscribe({
+        next: () => alert('Deployment deleted'),
+        error: () => alert('Error deleting deployment')
+      });
+    }
+  }
+
+  getStatusColor(status: string): string {
+    switch ((status || '').toLowerCase()) {
+      case 'open': return '#1976d2'; // blue
+      case 'in progress': return '#ffb300'; // yellow
+      case 'completed': return '#43a047'; // green
+      case 'pending': return '#e53935'; // red
+      default: return '#bdbdbd';
     }
   }
 }

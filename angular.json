@@ -68,7 +68,8 @@
               "buildTarget": "deployment-portal-frontend:build:production"
             },
             "development": {
-              "buildTarget": "deployment-portal-frontend:build:development"
+              "buildTarget": "deployment-portal-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

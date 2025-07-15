@@ -1,0 +1,102 @@
+<div class="top-toolbar">
+  <div class="filters">
+    <select class="thin-select" [(ngModel)]="statusFilter" (change)="onStatusChange($event)">
+      <option value="">Status</option>
+      <option value="Open">Open</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Pending">Pending</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <select class="thin-select" [(ngModel)]="envFilter" (change)="onEnvChange($event)">
+      <option value="">Environment</option>
+      <option value="UAT1">UAT1</option>
+      <option value="UAT2">UAT2</option>
+      <option value="UAT3">UAT3</option>
+      <option value="DEV1">DEV1</option>
+      <option value="DEV2">DEV2</option>
+      <option value="DEV3">DEV3</option>
+      <option value="PERF">PERF</option>
+      <option value="PROD">PROD</option>
+    </select>
+    <select class="thin-select" [(ngModel)]="releaseFilter" (change)="onReleaseChange($event)">
+      <option value="">Release</option>
+      <option *ngFor="let release of releases" [value]="release">{{ release }}</option>
+    </select>
+    <select class="thin-select" [(ngModel)]="configFilter" (change)="onConfigChange($event)">
+      <option value="">Config</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <div class="search-bar">
+    <input type="text" placeholder="Universal Search" class="search-input" [(ngModel)]="searchQuery" (keyup.enter)="searchChange.emit(searchQuery)" />
+    <button class="search-icon" (click)="searchChange.emit(searchQuery)">🔍</button>
+    <button *ngIf="canEdit" class="toolbar-btn" (click)="onEditRequest()">Edit Request</button>
+    <button *ngIf="canCreate" class="toolbar-btn" (click)="onNewRequest()">New Request</button>
+  </div>
+</div>
+<style>
+.top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+.filters {
+  display: flex;
+  gap: 8px;
+}
+.thin-select {
+  height: 28px;
+  font-size: 13px;
+  padding: 2px 8px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  border-radius: 3px;
+}
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.search-input {
+  height: 28px;
+  padding: 2px 10px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.search-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  height: 28px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toolbar-btn {
+  margin-left: 8px;
+  font-size: 13px;
+  height: 28px;
+  padding: 2px 12px;
+  border: 1px solid #1976d2;
+  background: #fff;
+  color: #1976d2;
+  outline: none;
+  border-radius: 3px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.toolbar-btn:hover {
+  background: #e3f2fd;
+  color: #003366;
+}
+</style>
