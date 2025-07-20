@@ -38,3 +38,20 @@
   padding: 8px 12px;
   font-size: 0.9rem;
 }
+
+.release-btn {
+  background: #2e7d32 !important;
+  color: white !important;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.release-btn:hover {
+  background: #1b5e20 !important;
+  transform: translateY(-1px);
+}

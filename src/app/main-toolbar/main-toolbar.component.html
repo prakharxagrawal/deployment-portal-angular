@@ -12,9 +12,6 @@
       <option value="UAT1">UAT1</option>
       <option value="UAT2">UAT2</option>
       <option value="UAT3">UAT3</option>
-      <option value="DEV1">DEV1</option>
-      <option value="DEV2">DEV2</option>
-      <option value="DEV3">DEV3</option>
       <option value="PERF">PERF</option>
       <option value="PROD">PROD</option>
     </select>
@@ -27,10 +24,25 @@
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
+    <select class="thin-select" [(ngModel)]="serviceFilter" (change)="onServiceChange($event)">
+      <option value="">Service</option>
+      <option *ngFor="let service of services" [value]="service.name">{{ service.name }}</option>
+    </select>
+    <select class="thin-select" [(ngModel)]="productionReadyFilter" (change)="onProductionReadyChange($event)">
+      <option value="">Production Ready</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+    <select class="thin-select" [(ngModel)]="teamFilter" (change)="onTeamChange($event)">
+      <option value="">Team</option>
+      <option *ngFor="let team of teams" [value]="team">{{ team }}</option>
+    </select>
+    <button class="clear-btn" (click)="clearFilters()" title="Clear All Filters">Clear</button>
   </div>
   <div class="search-bar">
     <input type="text" placeholder="Universal Search" class="search-input" [(ngModel)]="searchQuery" (keyup.enter)="searchChange.emit(searchQuery)" />
     <button class="search-icon" (click)="searchChange.emit(searchQuery)">🔍</button>
+    <button *ngIf="canCreateRelease" class="toolbar-btn release-btn" (click)="onCreateRelease()" title="Create New Release">Create Release</button>
     <button *ngIf="canEdit" class="toolbar-btn" (click)="onEditRequest()">Edit Request</button>
     <button *ngIf="canCreate" class="toolbar-btn" (click)="onNewRequest()">New Request</button>
   </div>
@@ -98,5 +110,37 @@
 .toolbar-btn:hover {
   background: #e3f2fd;
   color: #003366;
+}
+
+.production-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #666;
+}
+
+.production-filter input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+}
+
+.clear-btn {
+  font-size: 12px;
+  height: 24px;
+  padding: 2px 8px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  color: #666;
+  outline: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: #e0e0e0;
+  border-color: #999;
 }
 </style>

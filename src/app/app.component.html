@@ -1,33 +1,55 @@
+<!-- Main application container with background styling -->
 <div class="main-bg">
+  <!-- Application header with user info and logout functionality -->
   <app-main-header [user]="user" (logout)="logout()"></app-main-header>
+  
+  <!-- Main content container -->
   <div class="container edge-to-edge">
+    
+    <!-- Login form - only shown when user is not authenticated -->
     <div *ngIf="showLogin" class="login-wrapper">
-      <app-login (login)="user = $event; showLogin = false"></app-login>
+      <app-login (login)="onLogin($event)"></app-login>
     </div>
+    
+    <!-- Main application content - only shown when user is authenticated -->
     <div *ngIf="!showLogin" class="main-content new-layout">
+      <!-- Main toolbar with filters, search, and action buttons -->
       <app-main-toolbar
         [statusFilter]="statusFilter"
         [envFilter]="envFilter"
         [releaseFilter]="releaseFilter"
         [configFilter]="configFilter"
+        [serviceFilter]="serviceFilter"
+        [productionReadyFilter]="productionReadyFilter"
+        [teamFilter]="teamFilter"
         [releases]="releases"
         [searchQuery]="searchQuery"
         [canEdit]="canEdit"
         [canCreate]="canCreate"
+        [userRole]="user?.role"
         (statusFilterChange)="onStatusFilterChange($event)"
         (envFilterChange)="onEnvFilterChange($event)"
         (releaseFilterChange)="onReleaseFilterChange($event)"
         (configFilterChange)="onConfigFilterChange($event)"
+        (serviceFilterChange)="onServiceFilterChange($event)"
+        (productionReadyFilterChange)="onProductionReadyFilterChange($event)"
+        (teamFilterChange)="onTeamFilterChange($event)"
         (searchChange)="onSearchChange($event)"
         (editRequest)="onEditRequest()"
         (newRequest)="onNewRequest()"
+        (createRelease)="openCreateReleaseDialog()"
       ></app-main-toolbar>
+      
+      <!-- Main content area with deployment list and detail view -->
       <div class="content-row flex-content-row">
+        <!-- Left panel: Deployment list -->
         <app-request-list
           [deployments]="filteredDeployments"
           [selectedDeployment]="selectedDeployment"
           (deploymentSelected)="selectDeployment($event)">
         </app-request-list>
+        
+        <!-- Right panel: Deployment details -->
         <div class="main-panel">
           <div class="main-panel-content">
             <app-request-details 
@@ -38,16 +60,21 @@
           </div>
         </div>
       </div>
+      
+      <!-- Bottom toolbar for CSV export functionality -->
       <app-bottom-toolbar
         [releases]="releases"
-        [environments]="['UAT1','UAT2','UAT3','DEV1','DEV2','DEV3','PERF','PROD']"
         [teams]="teams"
         [selectedRelease]="exportReleaseFilter"
         [selectedEnv]="exportEnvFilter"
         [selectedTeam]="exportTeamFilter"
+        [startDate]="exportStartDate"
+        [endDate]="exportEndDate"
         (selectedReleaseChange)="onExportReleaseFilterChange($event)"
         (selectedEnvChange)="onExportEnvFilterChange($event)"
         (selectedTeamChange)="onExportTeamFilterChange($event)"
+        (startDateChange)="onExportStartDateChange($event)"
+        (endDateChange)="onExportEndDateChange($event)"
         (exportCSV)="onExportCSV($event)"
       ></app-bottom-toolbar>
     </div>

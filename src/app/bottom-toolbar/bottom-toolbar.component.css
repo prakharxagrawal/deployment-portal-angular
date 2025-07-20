@@ -86,3 +86,19 @@
 .main-content.new-layout {
   padding-bottom: 32px;
 }
+.thin-date-input {
+  font-size: 12px;
+  padding: 2px 8px;
+  height: 24px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  outline: none;
+  border-radius: 3px;
+  min-width: 120px;
+  color: #333;
+}
+
+.thin-date-input:focus {
+  border-color: #1976d2;
+  background: #fff;
+}

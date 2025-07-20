@@ -1,6 +1,18 @@
 <div class="bottom-toolbar-ultra-thin">
   <span class="left-text">Developed by Prakhar Agrawal (SOEID: PA54075)</span>
   <div class="export-controls">
+    <input 
+      type="date" 
+      class="thin-date-input"
+      placeholder="Start Date"
+      [(ngModel)]="startDate"
+      (change)="onStartDateChange($event)">
+    <input 
+      type="date" 
+      class="thin-date-input"
+      placeholder="End Date"
+      [(ngModel)]="endDate"
+      (change)="onEndDateChange($event)">
     <select class="thin-dropdown" [(ngModel)]="selectedRelease" (change)="onReleaseChange($event)">
       <option value="">Release</option>
       <option *ngFor="let release of releases" [value]="release">{{ release }}</option>

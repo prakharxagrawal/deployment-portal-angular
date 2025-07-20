@@ -1,0 +1,29 @@
+<h1 mat-dialog-title>Create New Release</h1>
+<div mat-dialog-content>
+  <form [formGroup]="releaseForm">
+    <mat-form-field class="full-width">
+      <mat-label>Release Name</mat-label>
+      <input matInput formControlName="name" placeholder="e.g., 2025-07">
+      <mat-error *ngIf="releaseForm.get('name')?.hasError('required')">
+        Release name is required
+      </mat-error>
+      <mat-error *ngIf="releaseForm.get('name')?.hasError('pattern')">
+        Release name must be in YYYY-MM format (e.g., 2025-07)
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3" placeholder="Release description"></textarea>
+      <mat-error *ngIf="releaseForm.get('description')?.hasError('required')">
+        Description is required
+      </mat-error>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button [mat-dialog-close]="releaseForm.value" 
+          [disabled]="!releaseForm.valid" 
+          cdkFocusInitial>Create</button>
+</div>
