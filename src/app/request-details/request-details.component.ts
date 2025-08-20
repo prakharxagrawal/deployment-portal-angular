@@ -1,23 +1,11 @@
-// Import required Angular core decorators and interfaces for component functionality
-import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-// Import CommonModule for basic Angular directives like *ngIf, *ngFor
+﻿import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// Import FormsModule for two-way data binding with ngModel
 import { FormsModule } from '@angular/forms';
 
-/**
- * RequestDetailsComponent displays detailed information about a selected deployment request.
- * This component shows all the fields of a deployment including status, RLM IDs, environments,
- * and production readiness. It provides different editing permissions based on user roles:
- * - Regular users: Read-only view
- * - Admins: Can edit status and RLM IDs
- * - SuperAdmins: Can edit all fields
- * - Original requesters: Can edit production readiness when status is Completed
- */
 @Component({
-  selector: 'app-request-details', // HTML tag to use this component: <app-request-details>
-  standalone: true, // This component doesn't depend on NgModule
-  imports: [CommonModule, FormsModule], // Import necessary modules for template functionality
+  selector: 'app-request-details',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="main-detail-container">
       <div class="main-detail-card" *ngIf="!deployment">
@@ -37,10 +25,10 @@ import { FormsModule } from '@angular/forms';
             <div class="status-container">
               <span class="status-badge" 
                     [ngClass]="getStatusClass(deployment.status)"
-                    *ngIf="!isAdmin">
+                    *ngIf="!canEditStatus">
                 {{ deployment.status }}
               </span>
-              <select *ngIf="isAdmin" 
+              <select *ngIf="canEditStatus" 
                       [(ngModel)]="editableDeployment.status" 
                       class="status-select"
                       [ngClass]="getStatusClass(editableDeployment.status)">
@@ -50,261 +38,342 @@ import { FormsModule } from '@angular/forms';
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            
-            <!-- Update Button for Admins (moved here below status) -->
-            <div *ngIf="isAdmin && hasChanges()" class="status-update-section">
-              <button (click)="updateDeployment()" 
-                      class="update-button status-update-btn">
-                Update Request
+            <div *ngIf="canEditStatus && hasChanges()" class="update-section">
+              <button (click)="updateDeployment()" class="update-button">
+                Update Status
               </button>
-              <span class="unsaved-indicator">
-                ● Unsaved changes
-              </span>
+              <span class="unsaved-indicator">● Unsaved changes</span>
             </div>
           </div>
         </div>
 
         <div class="main-detail-content">
-          <!-- Basic Information Section -->
-          <div class="main-detail-section">            
-            <div class="main-detail-row">
-              <span class="main-detail-label">CSI ID:</span>
-              <span class="main-detail-value">{{ deployment.csiId }}</span>
+          <!-- Basic Information -->
+          <div class="main-detail-grid">
+            <div class="detail-row">
+              <label class="detail-label">Application Name:</label>
+              <span class="detail-value">{{ deployment.applicationName }}</span>
             </div>
-            
-            <div class="main-detail-row">
-              <span class="main-detail-label">Service:</span>
-              <span class="main-detail-value">{{ deployment.service }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Version:</label>
+              <span class="detail-value">{{ deployment.version }}</span>
             </div>
-            
-            <div class="main-detail-row">
-              <span class="main-detail-label">Request ID:</span>
-              <span class="main-detail-value">{{ deployment.requestId }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Branch:</label>
+              <span class="detail-value">{{ deployment.branch }}</span>
             </div>
-            
-            <div class="main-detail-row" *ngIf="deployment.isConfig">
-              <span class="main-detail-label">Config Request ID:</span>
-              <span class="main-detail-value">{{ deployment.configRequestId }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Feature Name:</label>
+              <span class="detail-value">{{ deployment.featureName || 'N/A' }}</span>
             </div>
-            
-            <div class="main-detail-row">
-              <span class="main-detail-label">Team:</span>
-              <span class="main-detail-value">{{ deployment.team }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Created By:</label>
+              <span class="detail-value">{{ deployment.createdBy }}</span>
             </div>
-            
-            <div class="main-detail-row">
-              <span class="main-detail-label">Release:</span>
-              <span class="main-detail-value">{{ deployment.release }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Date Created:</label>
+              <span class="detail-value">{{ deployment.dateCreated | date:'medium' }}</span>
             </div>
-            
-            <div class="main-detail-row">
-              <span class="main-detail-label">Requested By:</span>
-              <span class="main-detail-value">{{ deployment.createdBy }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Date Modified:</label>
+              <span class="detail-value">{{ deployment.dateModified | date:'medium' }}</span>
             </div>
-            
-            <div class="main-detail-row" *ngIf="deployment.dateRequested">
-              <span class="main-detail-label">Date Requested:</span>
-              <span class="main-detail-value">{{ deployment.dateRequested | date:'medium' }}</span>
+            <div class="detail-row">
+              <label class="detail-label">Description:</label>
+              <span class="detail-value">{{ deployment.description || 'No description provided' }}</span>
             </div>
-            
-            <div class="main-detail-row" *ngIf="deployment.dateModified">
-              <span class="main-detail-label">Date Modified:</span>
-              <span class="main-detail-value">{{ deployment.dateModified | date:'medium' }}</span>
-            </div>
+          </div>
 
-            <!-- Environments Section (inline) -->
-            <div class="main-detail-row" *ngIf="deployment.environments && deployment.environments.length > 0">
-              <span class="main-detail-label">Environments:</span>
-              <span class="main-detail-value">{{ deployment.environments.join(', ') }}</span>
+          <!-- Environment Section -->
+          <div class="environment-section">
+            <h3 class="section-heading">Environments</h3>
+            <div class="environment-tags">
+              <span *ngFor="let env of deployment.environments" 
+                    class="environment-tag"
+                    [ngClass]="'env-' + env.toLowerCase()">
+                {{ env }}
+              </span>
             </div>
+          </div>
 
-            <!-- Production Ready Section (visible when status is Completed) -->
-            <div class="main-detail-row" *ngIf="deployment.status === 'Completed'">
-              <span class="main-detail-label">Production Ready:</span>
-              <div class="production-ready-container">
-                <label class="production-ready-checkbox">
+          <!-- Production and Performance Ready Section -->
+          <div class="readiness-section">
+            <h3 class="section-heading">Deployment Readiness</h3>
+            <div class="readiness-controls">
+              <!-- Performance Ready -->
+              <div class="readiness-item">
+                <div class="checkbox-wrapper">
                   <input type="checkbox" 
-                         [(ngModel)]="editableDeployment.productionReady"
-                         [disabled]="!canEditProductionReady()">
-                  Ready for Production
-                </label>
-                <!-- Update Button for Production Ready Changes -->
-                <div *ngIf="canEditProductionReady() && hasProductionReadyChanges()" class="production-ready-update-section">
-                  <button (click)="updateProductionReady()" 
-                          class="update-button production-ready-btn">
-                    Update
+                         id="performanceReady"
+                         [(ngModel)]="editableDeployment.performanceReady"
+                         [disabled]="isPerfEnvironmentSelected() || !canEditPerformanceReady()"
+                         class="readiness-checkbox">
+                  <label for="performanceReady" class="readiness-label">
+                    Ready for Performance
+                    <span *ngIf="isPerfEnvironmentSelected()" class="auto-checked">(Auto-checked: PERF environment selected)</span>
+                  </label>
+                </div>
+                <div *ngIf="hasPerformanceReadyChanges() && canEditPerformanceReady()" class="readiness-update">
+                  <button (click)="updatePerformanceReady()" class="update-button readiness-update-btn">
+                    Update Performance Ready
                   </button>
-                  <span class="unsaved-indicator">
-                    ● Unsaved changes
-                  </span>
+                </div>
+              </div>
+
+              <!-- Production Ready -->
+              <div class="readiness-item">
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" 
+                         id="productionReady"
+                         [(ngModel)]="editableDeployment.productionReady"
+                         [disabled]="!canEditProductionReady()"
+                         class="readiness-checkbox">
+                  <label for="productionReady" class="readiness-label">Ready for Production</label>
+                </div>
+                <div *ngIf="hasProductionReadyChanges() && canEditProductionReady()" class="readiness-update">
+                  <button (click)="updateProductionReady()" class="update-button readiness-update-btn">
+                    Update Production Ready
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- RLM IDs Section (Always visible, compact layout) -->
-          <div class="main-detail-section">
-            <div class="rlm-grid-compact">
-              <!-- UAT Environment -->
-              <div class="rlm-env-group-compact" *ngIf="hasRequestedEnvironment('UAT1') || hasRequestedEnvironment('UAT2') || hasRequestedEnvironment('UAT3')">
-                <div class="rlm-env-title">UAT</div>
-                <div class="rlm-fields-row">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdUat1" 
-                         placeholder="UAT1 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm"
-                         *ngIf="hasRequestedEnvironment('UAT1')">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdUat2" 
-                         placeholder="UAT2 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm"
-                         *ngIf="hasRequestedEnvironment('UAT2')">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdUat3" 
-                         placeholder="UAT3 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm"
-                         *ngIf="hasRequestedEnvironment('UAT3')">
+          <!-- RLM IDs Section -->
+          <div class="rlm-section">
+            <h3 class="section-heading">RLM IDs</h3>
+            
+            <!-- UAT Environment RLM IDs -->
+            <div class="rlm-environment-group">
+              <h4 class="rlm-env-title">UAT Environments</h4>
+              <div class="rlm-grid">
+                <div class="rlm-field" *ngIf="hasRequestedEnvironment('UAT1')">
+                  <label class="rlm-label">UAT1 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdUat1"
+                         class="rlm-input"
+                         placeholder="Enter UAT1 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdUat1 || 'Not set' }}
+                  </span>
+                </div>
+                
+                <div class="rlm-field" *ngIf="hasRequestedEnvironment('UAT2')">
+                  <label class="rlm-label">UAT2 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdUat2"
+                         class="rlm-input"
+                         placeholder="Enter UAT2 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdUat2 || 'Not set' }}
+                  </span>
+                </div>
+                
+                <div class="rlm-field" *ngIf="hasRequestedEnvironment('UAT3')">
+                  <label class="rlm-label">UAT3 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdUat3"
+                         class="rlm-input"
+                         placeholder="Enter UAT3 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdUat3 || 'Not set' }}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <!-- Performance Environment (Always visible) -->
-              <div class="rlm-env-group-compact">
-                <div class="rlm-env-title">Performance</div>
-                <div class="rlm-fields-row">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdPerf1" 
-                         placeholder="PERF1 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdPerf2" 
-                         placeholder="PERF2 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm">
+            <!-- Performance Environment RLM IDs - Show when PERF selected OR performance ready checked -->
+            <div class="rlm-environment-group" *ngIf="shouldShowPerfRlmFields()">
+              <h4 class="rlm-env-title">Performance Environment</h4>
+              <div class="rlm-grid">
+                <div class="rlm-field">
+                  <label class="rlm-label">PERF1 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdPerf1"
+                         class="rlm-input"
+                         placeholder="Enter PERF1 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdPerf1 || 'Not set' }}
+                  </span>
+                </div>
+                
+                <div class="rlm-field">
+                  <label class="rlm-label">PERF2 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdPerf2"
+                         class="rlm-input"
+                         placeholder="Enter PERF2 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdPerf2 || 'Not set' }}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <!-- Production Environment (Always visible) -->
-              <div class="rlm-env-group-compact">
-                <div class="rlm-env-title">Production</div>
-                <div class="rlm-fields-row">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdProd1" 
-                         placeholder="PROD1 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm">
-                  <input type="text" 
-                         [(ngModel)]="editableDeployment.rlmIdProd2" 
-                         placeholder="PROD2 RLM ID"
-                         class="rlm-input-compact"
-                         [readonly]="!canEditRlm">
+            <!-- Production Environment RLM IDs - Show only when production ready checked -->
+            <div class="rlm-environment-group" *ngIf="shouldShowProdRlmFields()">
+              <h4 class="rlm-env-title">Production Environment</h4>
+              <div class="rlm-grid">
+                <div class="rlm-field">
+                  <label class="rlm-label">PROD1 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdProd1"
+                         class="rlm-input"
+                         placeholder="Enter PROD1 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdProd1 || 'Not set' }}
+                  </span>
+                </div>
+                
+                <div class="rlm-field">
+                  <label class="rlm-label">PROD2 RLM ID:</label>
+                  <input *ngIf="canEditRlm" 
+                         type="text" 
+                         [(ngModel)]="editableDeployment.rlmIdProd2"
+                         class="rlm-input"
+                         placeholder="Enter PROD2 RLM ID">
+                  <span *ngIf="!canEditRlm && canViewRlm" class="rlm-readonly">
+                    {{ editableDeployment.rlmIdProd2 || 'Not set' }}
+                  </span>
                 </div>
               </div>
+            </div>
+            
+            <!-- RLM Update Button and Status (only for users who can edit) -->
+            <div *ngIf="canEditRlm && hasRlmChanges()" class="rlm-update-section">
+              <button (click)="updateDeployment()" 
+                      class="update-button rlm-update-btn">
+                Update RLM IDs
+              </button>
+              <span class="unsaved-indicator">
+                ● Unsaved RLM changes
+              </span>
+            </div>
+            
+            <!-- Show read-only message for non-editing users -->
+            <div *ngIf="!canEditRlm && canViewRlm" class="readonly-notice">
+              <span class="readonly-status">RLM IDs are view-only for your role</span>
             </div>
           </div>
         </div>
       </div>
     </div>
   `,
-  styleUrls: ['./request-details.component.css'] // Link to component-specific CSS styles
+  styleUrls: ['./request-details.component.css']
 })
 export class RequestDetailsComponent implements OnChanges {
-  // Input property: deployment object passed from parent component (app.component)
   @Input() deployment: any;
-  // Input property: current user object with role and permissions information
   @Input() user: any;
-  // Output event: emitted when deployment data is updated, parent component listens for this
   @Output() deploymentUpdate = new EventEmitter<any>();
 
-  // Local copy of deployment data that can be edited without affecting the original
   editableDeployment: any = {};
-  // Original deployment data to track changes and determine if update is needed
   originalDeployment: any = {};
   
-  /**
-   * Computed property that checks if current user has admin privileges
-   * Returns true if user role is 'admin' or 'superadmin'
-   */
   get isAdmin(): boolean {
     return this.user?.role === 'admin' || this.user?.role === 'superadmin';
   }
 
-  /**
-   * Computed property that checks if current user has superadmin privileges
-   * SuperAdmins have the highest level of permissions in the system
-   */
   get isSuperAdmin(): boolean {
     return this.user?.role === 'superadmin';
   }
 
-  /**
-   * Computed property that determines if user can edit RLM (Release Management) IDs
-   * Both admin and superadmin roles have permission to edit RLM IDs
-   */
+  get isDeveloper(): boolean {
+    return this.user?.role === 'developer';
+  }
+
+  // FIX #1: Separate view from edit permissions for RLM
+  get canViewRlm(): boolean {
+    return true; // All users can view RLM IDs
+  }
+
   get canEditRlm(): boolean {
-    // Both admin and superadmin can edit RLM IDs
     return this.user?.role === 'admin' || this.user?.role === 'superadmin';
   }
 
-  /**
-   * Computed property that determines if user can edit the entire request
-   * Only superadmins have full editing privileges for all request fields
-   */
+  // FIX #3: Super admin complete access
   get canEditFullRequest(): boolean {
-    // Only superadmin can edit full request, admins can only edit status and RLM IDs
     return this.user?.role === 'superadmin';
   }
 
-  /**
-   * Method that checks if current user can edit the production ready checkbox
-   * Production readiness can only be edited by:
-   * 1. The original requester (person who created the deployment request)
-   * 2. SuperAdmins
-   * 3. Only when the deployment status is 'Completed'
-   */
-  canEditProductionReady(): boolean {
-    // Only original requester (createdBy) or superadmin can edit production ready, only when status is Completed
-    return this.deployment?.status === 'Completed' && 
-           (this.user?.role === 'superadmin' || 
-            this.user?.username === this.deployment?.createdBy);
+  get canEditStatus(): boolean {
+    return this.user?.role === 'admin' || this.user?.role === 'superadmin';
   }
 
-  /**
-   * Method that checks if a specific environment was requested for this deployment
-   * @param env - Environment name to check (e.g., 'UAT1', 'UAT2', 'PERF1', 'PROD1')
-   * @returns boolean indicating if the environment is included in the deployment's environment list
-   */
+  // FIX #2: Bulletproof readiness flow with proper role and status validation
+  canEditProductionReady(): boolean {
+    if (!this.deployment || this.deployment.status !== 'Completed') {
+      return false;
+    }
+    
+    // Superadmin has complete access to any completed request
+    if (this.user?.role === 'superadmin') {
+      return true;
+    }
+    
+    // Original request creator can mark their own completed requests ready
+    if (this.user?.role === 'developer' && 
+        this.user?.username === this.deployment?.createdBy) {
+      return true;
+    }
+    
+    // Admins cannot mark readiness (not request creators)
+    return false;
+  }
+
+  canEditPerformanceReady(): boolean {
+    if (!this.deployment || this.deployment.status !== 'Completed') {
+      return false;
+    }
+    
+    // Superadmin has complete access to any completed request
+    if (this.user?.role === 'superadmin') {
+      return true;
+    }
+    
+    // Original request creator can mark their own completed requests ready
+    if (this.user?.role === 'developer' && 
+        this.user?.username === this.deployment?.createdBy) {
+      return true;
+    }
+    
+    // Admins cannot mark readiness (not request creators)
+    return false;
+  }
+
   hasRequestedEnvironment(env: string): boolean {
     return this.deployment?.environments?.includes(env) || false;
   }
 
-  /**
-   * Angular lifecycle hook that runs when input properties change
-   * This ensures the component updates when a new deployment is selected
-   */
   ngOnChanges() {
     if (this.deployment) {
-      // Create editable copy of deployment data for form binding
       this.editableDeployment = { ...this.deployment };
-      // Store original deployment data to track changes
       this.originalDeployment = { ...this.deployment };
+      
+      // Auto-check performance ready if PERF environment is selected (bulletproof logic)
+      if (this.isPerfEnvironmentSelected()) {
+        // Only auto-check if not already set and user has permission to modify
+        if (!this.editableDeployment.performanceReady && this.canEditPerformanceReady()) {
+          this.editableDeployment.performanceReady = true;
+        }
+        // For read-only users, just ensure the sync is visible in the UI
+        else if (!this.editableDeployment.performanceReady) {
+          // Force sync for display purposes (will be validated on backend)
+          this.editableDeployment.performanceReady = true;
+        }
+      }
     }
   }
 
-  /**
-   * Method that determines if any changes have been made to the deployment data
-   * Compares current editable data with original data for admin-editable fields
-   * @returns boolean indicating if there are unsaved changes
-   */
   hasChanges(): boolean {
     if (!this.deployment || !this.editableDeployment) return false;
     
-    // For admin changes (status and RLM IDs) - exclude production ready
     return this.editableDeployment.status !== this.originalDeployment.status ||
-           // Check all RLM ID fields for changes across different environments
            this.editableDeployment.rlmIdUat1 !== this.originalDeployment.rlmIdUat1 ||
            this.editableDeployment.rlmIdUat2 !== this.originalDeployment.rlmIdUat2 ||
            this.editableDeployment.rlmIdUat3 !== this.originalDeployment.rlmIdUat3 ||
@@ -314,63 +383,75 @@ export class RequestDetailsComponent implements OnChanges {
            this.editableDeployment.rlmIdProd2 !== this.originalDeployment.rlmIdProd2;
   }
 
-  /**
-   * Method that checks specifically if the production ready flag has been changed
-   * This is tracked separately because it has different permission requirements
-   * @returns boolean indicating if production ready status has been modified
-   */
   hasProductionReadyChanges(): boolean {
     if (!this.deployment || !this.editableDeployment) return false;
     return this.editableDeployment.productionReady !== this.originalDeployment.productionReady;
   }
 
-  /**
-   * Method that returns the appropriate CSS class for deployment status styling
-   * Each status has a different color scheme to provide visual feedback
-   * @param status - The deployment status string
-   * @returns CSS class name for status styling
-   */
+  hasPerformanceReadyChanges(): boolean {
+    if (!this.deployment || !this.editableDeployment) return false;
+    return this.editableDeployment.performanceReady !== this.originalDeployment.performanceReady;
+  }
+
   getStatusClass(status: string): string {
     if (!status) return 'status-open';
     switch (status.toLowerCase()) {
-      case 'open': return 'status-open'; // Typically blue/gray for new requests
-      case 'in progress': return 'status-progress'; // Typically yellow/orange for active work
-      case 'pending': return 'status-pending'; // Typically orange for waiting states
-      case 'completed': return 'status-completed'; // Typically green for finished work
-      default: return 'status-open'; // Default to open status styling
+      case 'open': return 'status-open';
+      case 'in progress': return 'status-progress';
+      case 'pending': return 'status-pending';
+      case 'completed': return 'status-completed';
+      default: return 'status-open';
     }
   }
 
-  /**
-   * Method that handles updating deployment data (status and RLM IDs)
-   * This method is called when admin users save their changes
-   * Emits the updated deployment to the parent component for API calls
-   */
   updateDeployment() {
-    if (this.editableDeployment && this.isAdmin) {
-      // Update the date modified to current timestamp for audit trail
+    if (this.editableDeployment && this.canEditStatus) {
       this.editableDeployment.dateModified = new Date().toISOString();
-      // Emit the updated deployment data to parent component
       this.deploymentUpdate.emit(this.editableDeployment);
-      // Update original to reflect the saved state and reset change tracking
       this.originalDeployment = { ...this.editableDeployment };
     }
   }
 
-  /**
-   * Method that handles updating only the production ready status
-   * This is a separate update method because production ready has different permissions
-   * Only original requesters and superadmins can modify this when status is Completed
-   */
   updateProductionReady() {
     if (this.editableDeployment && this.canEditProductionReady()) {
-      // Update the date modified to current timestamp for audit trail
       this.editableDeployment.dateModified = new Date().toISOString();
-      // Emit the updated deployment data to parent component
       this.deploymentUpdate.emit(this.editableDeployment);
-      // Update original to reflect the saved state and reset change tracking
       this.originalDeployment = { ...this.editableDeployment };
     }
   }
-}
 
+  updatePerformanceReady() {
+    if (this.editableDeployment && this.canEditPerformanceReady()) {
+      this.editableDeployment.dateModified = new Date().toISOString();
+      this.deploymentUpdate.emit(this.editableDeployment);
+      this.originalDeployment = { ...this.editableDeployment };
+    }
+  }
+
+  hasRlmChanges(): boolean {
+    if (!this.deployment || !this.editableDeployment) return false;
+    
+    return this.editableDeployment.rlmIdUat1 !== this.originalDeployment.rlmIdUat1 ||
+           this.editableDeployment.rlmIdUat2 !== this.originalDeployment.rlmIdUat2 ||
+           this.editableDeployment.rlmIdUat3 !== this.originalDeployment.rlmIdUat3 ||
+           this.editableDeployment.rlmIdPerf1 !== this.originalDeployment.rlmIdPerf1 ||
+           this.editableDeployment.rlmIdPerf2 !== this.originalDeployment.rlmIdPerf2 ||
+           this.editableDeployment.rlmIdProd1 !== this.originalDeployment.rlmIdProd1 ||
+           this.editableDeployment.rlmIdProd2 !== this.originalDeployment.rlmIdProd2;
+  }
+
+  isPerfEnvironmentSelected(): boolean {
+    return this.hasRequestedEnvironment('PERF');
+  }
+
+  shouldShowPerfRlmFields(): boolean {
+    return this.hasRequestedEnvironment('PERF') || 
+           this.hasRequestedEnvironment('PERF1') || 
+           this.hasRequestedEnvironment('PERF2') || 
+           this.editableDeployment?.performanceReady;
+  }
+
+  shouldShowProdRlmFields(): boolean {
+    return this.editableDeployment?.productionReady;
+  }
+}

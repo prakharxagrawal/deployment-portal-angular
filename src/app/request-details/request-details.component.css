@@ -591,3 +591,80 @@ button:hover {
 .production-ready-btn:active {
   background: #0d47a1;
 }
+
+/* Styles for read-only status indicators */
+.readonly-status {
+  color: #666;
+  font-size: 11px;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+/* RLM section title */
+.rlm-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+  padding: 0 24px;
+}
+
+/* RLM update section styles */
+.rlm-update-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 0 24px;
+}
+
+.rlm-update-btn {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rlm-update-btn:hover {
+  background: #1b5e20;
+}
+
+.rlm-update-btn:active {
+  background: #0d47a1;
+}
+
+/* Read-only notice for RLM section */
+.readonly-notice {
+  margin-top: 8px;
+  padding: 0 24px;
+}
+
+/* Read-only status text */
+.readonly-status {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+/* RLM section title */
+.rlm-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 12px 24px;
+  padding-top: 16px;
+}
+
+/* RLM update section */
+.rlm-update-section {
+  margin-top: 12px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

@@ -46,7 +46,6 @@ export class MainToolbarComponent implements OnInit {
   @Input() releaseFilter: string = ''; // Current release filter value
   @Input() configFilter: string = ''; // Current configuration filter value
   @Input() serviceFilter: string = ''; // Current service filter value
-  @Input() productionReadyFilter: string = ''; // Current production ready filter value
   @Input() teamFilter: string = ''; // Current team filter value
   @Input() releases: string[] = []; // Available release versions for filtering
   @Input() searchQuery: string = ''; // Current search query string
@@ -60,7 +59,6 @@ export class MainToolbarComponent implements OnInit {
   @Output() releaseFilterChange = new EventEmitter<string>(); // Release filter changed
   @Output() configFilterChange = new EventEmitter<string>(); // Configuration filter changed
   @Output() serviceFilterChange = new EventEmitter<string>(); // Service filter changed
-  @Output() productionReadyFilterChange = new EventEmitter<string>(); // Production ready filter changed
   @Output() teamFilterChange = new EventEmitter<string>(); // Team filter changed
   @Output() searchChange = new EventEmitter<string>(); // Search query changed
   @Output() editRequest = new EventEmitter<void>(); // Edit request button clicked
@@ -144,15 +142,6 @@ export class MainToolbarComponent implements OnInit {
   }
   
   /**
-   * Event handler for production ready filter dropdown changes
-   * @param event - HTML select change event
-   */
-  onProductionReadyChange(event: Event) {
-    const value = (event.target as HTMLSelectElement)?.value || '';
-    this.productionReadyFilterChange.emit(value);
-  }
-  
-  /**
    * Event handler for team filter dropdown changes
    * @param event - HTML select change event
    */
@@ -172,7 +161,6 @@ export class MainToolbarComponent implements OnInit {
     this.releaseFilter = '';
     this.configFilter = '';
     this.serviceFilter = '';
-    this.productionReadyFilter = '';
     this.teamFilter = '';
     
     // Emit empty values to parent component to clear all active filters
@@ -181,7 +169,6 @@ export class MainToolbarComponent implements OnInit {
     this.releaseFilterChange.emit('');
     this.configFilterChange.emit('');
     this.serviceFilterChange.emit('');
-    this.productionReadyFilterChange.emit('');
     this.teamFilterChange.emit('');
   }
   

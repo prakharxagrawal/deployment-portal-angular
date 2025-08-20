@@ -157,11 +157,6 @@ export class AppComponent implements OnInit {
   serviceFilter: string = '';
   
   /**
-   * Filter by production ready status (yes/no)
-   */
-  productionReadyFilter: string = '';
-  
-  /**
    * Universal search query across multiple fields
    */
   searchQuery: string = '';
@@ -452,9 +447,23 @@ export class AppComponent implements OnInit {
       filtered = filtered.filter(d => (d.status || '').toLowerCase() === this.statusFilter.toLowerCase());
     }
     
-    // FILTER 2: Environment filter (UAT1, UAT2, UAT3, PERF, PROD)
+    // FILTER 2: Environment filter with readiness logic
+    // When PERF is selected: show requests deployed to PERF OR marked as performance ready
+    // When PROD is selected: show requests deployed to PROD OR marked as production ready
+    // For other environments: show requests deployed to that specific environment
     if (this.envFilter) {
-      filtered = filtered.filter(d => (d.environments || []).includes(this.envFilter));
+      if (this.envFilter === 'PERF') {
+        filtered = filtered.filter(d => 
+          (d.environments || []).includes('PERF') || d.performanceReady === true
+        );
+      } else if (this.envFilter === 'PROD') {
+        filtered = filtered.filter(d => 
+          (d.environments || []).includes('PROD') || d.productionReady === true
+        );
+      } else {
+        // For UAT1, UAT2, UAT3 - show only requests deployed to that environment
+        filtered = filtered.filter(d => (d.environments || []).includes(this.envFilter));
+      }
     }
     
     // FILTER 3: Release filter (exact match on release name)
@@ -470,16 +479,6 @@ export class AppComponent implements OnInit {
     // FILTER 5: Service filter (exact match on service name)
     if (this.serviceFilter) {
       filtered = filtered.filter(d => d.service === this.serviceFilter);
-    }
-    
-    // FILTER 6: Production ready filter (boolean filter)
-    if (this.productionReadyFilter) {
-      if (this.productionReadyFilter === 'yes') {
-        filtered = filtered.filter(d => d.productionReady === true);
-      } else if (this.productionReadyFilter === 'no') {
-        filtered = filtered.filter(d => d.productionReady === false);
-      }
-      // If 'all' or empty, no filtering needed
     }
     
     // Note: searchQuery is now handled by backend in loadDeployments(), not here
@@ -568,15 +567,6 @@ export class AppComponent implements OnInit {
    */
   onServiceFilterChange(value: string) {
     this.serviceFilter = value;
-    this.applyFilters(); // Apply client-side filtering
-  }
-  
-  /**
-   * Handle production ready filter change
-   * @param value Production ready filter value (yes/no/all)
-   */
-  onProductionReadyFilterChange(value: string) {
-    this.productionReadyFilter = value;
     this.applyFilters(); // Apply client-side filtering
   }
   

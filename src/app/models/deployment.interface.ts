@@ -21,6 +21,9 @@ export interface Deployment {
   // Unique identifier for this specific deployment request
   requestId: string;
   
+  // Alternative identifier for upcoming deployment (alternative to requestId)
+  upcomingBranch?: string;
+  
   // Git branch name for the release (optional, may be derived from release)
   releaseBranch?: string;
   
@@ -51,8 +54,14 @@ export interface Deployment {
   // Additional request ID for configuration requests (required when isConfig is true)
   configRequestId?: string;
   
+  // Alternative identifier for upcoming config deployment (alternative to configRequestId)
+  upcomingConfigBranch?: string;
+  
   // Flag indicating if the deployment is ready for production use
   productionReady?: boolean;
+  
+  // Flag indicating if the deployment is ready for performance testing
+  performanceReady?: boolean;
   
   // RLM (Release Management) IDs for each environment
   // These track the deployment in the release management system

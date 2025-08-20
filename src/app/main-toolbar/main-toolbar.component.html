@@ -28,11 +28,7 @@
       <option value="">Service</option>
       <option *ngFor="let service of services" [value]="service.name">{{ service.name }}</option>
     </select>
-    <select class="thin-select" [(ngModel)]="productionReadyFilter" (change)="onProductionReadyChange($event)">
-      <option value="">Production Ready</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
+
     <select class="thin-select" [(ngModel)]="teamFilter" (change)="onTeamChange($event)">
       <option value="">Team</option>
       <option *ngFor="let team of teams" [value]="team">{{ team }}</option>
